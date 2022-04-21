@@ -215,7 +215,7 @@ end
         % Percentage of Time in Near Surface based on avg cruise ship draft (>5 - 15 meters)
             SUBSURF = sum(prh.p(prh.tagon) > 5 & prh.p(prh.tagon) <= 15)/sum(prh.tagon)*100;
         % Percentage at Depth
-            ATDEPTH = 100 - (SURF + SUBSURF);
+            ATDEPTH = 100 - SURF + SUBSURF;
 
       % Add to Deploy_Meta Table
       Deploy_Meta_temp = table(string(whaleName),tagon_localtime,tagoff_localtime,UTC,data_duration,vid_duration,aud_duration,lunge_count,BubbleNetHQ_count,BubbleNetLQ_count,SURF, SUBSURF, ATDEPTH);
