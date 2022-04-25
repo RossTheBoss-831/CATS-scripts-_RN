@@ -40,9 +40,9 @@
 %% Add File Paths
 clear;
 %Solar Angle
-addpath(genpath('E:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Public scripts\chadagreene-CDT-9ef9171'))
+addpath(genpath('D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Public scripts\chadagreene-CDT-9ef9171'))
 % path of DeployGPS.mat
-deployPath = 'E:\Remote Work Enviornment\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Data Tables\DeployGPS.mat'
+deployPath = 'D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Data Tables\DeployGPS.mat'
 %% Select and Load Tag Directory
 dname = uigetdir();
 dfiles = dir(dname);
