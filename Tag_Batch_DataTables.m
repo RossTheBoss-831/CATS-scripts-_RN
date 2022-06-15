@@ -403,7 +403,7 @@ end
                     % Percentage of Time in Near Surface based on avg cruise ship draft (>5 - 15 meters)
                         SUBSURF_H = sum(prh.p(uI) > 5 & prh.p(uI) <= 15)/length(uI)*100;
                     % Percentage at Depth
-                        ATDEPTH_H = 100 - (SURF + SUBSURF);
+                        ATDEPTH_H = 100 - (SURF_H + SUBSURF_H);
                     
                  % Create data row and add to table
                     % Added UU, which indicates the number of hours since
