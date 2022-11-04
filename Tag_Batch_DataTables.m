@@ -40,9 +40,15 @@
 %% Add File Paths
 clear;
 %Solar Angle
-addpath(genpath('D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Public scripts\chadagreene-CDT-9ef9171'))
+%addpath(genpath('D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Public scripts\chadagreene-CDT-9ef9171'))
+addpath(genpath('X:\PROJECTS\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Public Scripts\chadagreene-CDT-9ef9171'))
 % path of DeployGPS.mat
-deployPath = 'D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Data Tables\DeployGPS.mat'
+deployPath = 'C:\Users\rossc\Documents\GitHub\CATS Scripts_RN\CATS-scripts-_RN\DeployGPS.mat'
+
+%% Thresholds
+    %IAATO
+    FD_Dive_TH = 5; % Minimum depth needed for finddives2 to consider it a dive
+    Depth_Risk_TH = [0,5,15]; % 1st Value is Surface, 2nd is Near Surface, 3rd is Max Depth of Risk
 %% Select and Load Tag Directory
 dname = uigetdir();
 dfiles = dir(dname);
@@ -397,6 +403,10 @@ end
                     MLD = mean(lunges.LungeDepth(ismember(lunges.LungeI,uI)));
                              
                 % IAATO VALUES per deployment for Presence at Surface,
+                    %FD_Dive_TH = 5; % Minimum depth needed for finddives2
+                    %to consider it a dive (Threshold at top of script)
+                    %Depth_Risk_TH = [0,5,15]; % 1st Value is Surface, 2nd
+                    %is Near Surface, 3rd is Max Depth of Risk (Threshold at top of script)
                 % Subsurface and At Depth
                     % Percentage of Time in 0 - 5 meters (Surface)
                         SURF_H = sum(prh.p(uI) <= 5)/length(uI)*100;
@@ -404,6 +414,8 @@ end
                         SUBSURF_H = sum(prh.p(uI) > 5 & prh.p(uI) <= 15)/length(uI)*100;
                     % Percentage at Depth
                         ATDEPTH_H = 100 - (SURF_H + SUBSURF_H);
+                        
+                % Find Dives Stats
                     
                  % Create data row and add to table
                     % Added UU, which indicates the number of hours since
