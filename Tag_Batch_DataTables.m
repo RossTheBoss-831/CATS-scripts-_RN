@@ -43,6 +43,7 @@ clear;
 %addpath(genpath('D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Public scripts\chadagreene-CDT-9ef9171'))
 addpath(genpath('X:\PROJECTS\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Public Scripts\chadagreene-CDT-9ef9171'));
 addpath(genpath('C:\Users\rossc\OneDrive\Documents\GitHub\CATS-scripts-_RN'));
+addpath(genpath('C:\Users\rossc\OneDrive\Documents\GitHub\CATS-Methods-Materials'));
 % path of DeployGPS.mat
 deployPath = 'C:\Users\rossc\Documents\GitHub\CATS Scripts_RN\CATS-scripts-_RN\DeployGPS.mat';
 
