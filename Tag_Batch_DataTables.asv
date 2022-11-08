@@ -79,7 +79,7 @@ skippedstrategy = [];
 Bubble_Nets = table();
 Deploy_Meta = table();
 HourlyMetrics = table();
-DepthPresence = table('Size',[1,500],'VariableTypes',repmat("double",1,500), 'VariableNames', string(1:1:500));
+DepthPresence = table('Size',[1,10],'VariableTypes',"double")
 
 valid_FR = zeros(length(dfiles_mn),1);  % Variable to track which deployments are usable for HFR analysis
 
@@ -419,9 +419,9 @@ end
 
                 % Seconds within 1m Bin Depths (0 to 500m)
                     h = histogram(abs(p),'BinEdges',[0:1:500]); % create histogram with 1m bins to 500m
-                    hh = array2table(h.Values/fs, 'VariableNames',string([1:1:500]), RowNames=WID); % Convert values of histagram to seconds
-                    close % close histogram plot
-                    DepthPresence = [DepthPresence; hh];
+                    hh = array2table(h.Values/fs); % Convert values of histagram to seconds
+                    close
+                    DepthPresence = [DepthPresence; hh]
 
 
                 % Find Dives Stats
@@ -438,4 +438,4 @@ end
         end
 end
 
-clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence skippedprh skippedlunge skippedstrategy
+clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta skippedprh skippedlunge skippedstrategy
