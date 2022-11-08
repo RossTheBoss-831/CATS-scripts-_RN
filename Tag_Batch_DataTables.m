@@ -41,13 +41,14 @@
 clear;
 %Solar Angle
 %addpath(genpath('D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Public scripts\chadagreene-CDT-9ef9171'))
-addpath(genpath('X:\PROJECTS\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Public Scripts\chadagreene-CDT-9ef9171'))
+addpath(genpath('X:\PROJECTS\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Public Scripts\chadagreene-CDT-9ef9171'));
+addpath(genpath('C:\Users\rossc\OneDrive\Documents\GitHub\CATS-scripts-_RN'));
 % path of DeployGPS.mat
-deployPath = 'C:\Users\rossc\Documents\GitHub\CATS Scripts_RN\CATS-scripts-_RN\DeployGPS.mat'
+deployPath = 'C:\Users\rossc\Documents\GitHub\CATS Scripts_RN\CATS-scripts-_RN\DeployGPS.mat';
 
 %% Thresholds
     % IAATO
-    FD_Dive_TH = 5; % Minimum depth needed for finddives2 to consider it a dive
+    th = 5; % Minimum depth needed for finddives2 to consider it a dive
     %Depth_Risk_TH = [0,5,15]; % 1st Value is Surface, 2nd is Near Surface, 3rd is Max Depth of Risk
 %% Select and Load Tag Directory
 dname = uigetdir();
@@ -425,7 +426,9 @@ end
 
 
                 % Find Dives Stats
-                    
+                    FD = finddives2(p,fs,th);
+
+
                  % Create data row and add to table
                     % Added UU, which indicates the number of hours since
                     % the analytical tag on began. Used for the temporal
