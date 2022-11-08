@@ -427,6 +427,14 @@ end
 
                 % Find Dives Stats
                     FD = finddives2(p,fs,th);
+                    % Dive Duration
+                    % Max Dive Depth
+                    % Descent Rate
+                    % Ascent Rate
+                    % Descent Heading Change
+                    % Surfacing Duration - use findsurfacing script?
+                    % Number of Breaths
+                    % 
 
 
                  % Create data row and add to table
