@@ -47,7 +47,9 @@ addpath(genpath('C:\Users\rossc\OneDrive\Documents\GitHub\CATS-Methods-Materials
 % path of DeployGPS.mat
 deployPath = 'C:\Users\rossc\Documents\GitHub\CATS Scripts_RN\CATS-scripts-_RN\DeployGPS.mat';
 
-%% Thresholds
+%% IAATO Analysis
+    diveplotson = true; % set to false for no dive plots
+    diveplotlocation = 'X:\PROJECTS\IAATO_Antarctic Humpback Ship Strike Vulnerability\Tag Analysis\Deployment Dive Plots';
     % IAATO
     th = 5; % Minimum depth needed for finddives2 to consider it a dive
     %Depth_Risk_TH = [0,5,15]; % 1st Value is Surface, 2nd is Near Surface, 3rd is Max Depth of Risk
@@ -407,6 +409,7 @@ end
                     MLD = mean(lunges.LungeDepth(ismember(lunges.LungeI,uI)));
                              
                 % IAATO VALUES per deployment for Presence at Surface,
+
                     %FD_Dive_TH = 5; % Minimum depth needed for finddives2
                     %to consider it a dive (Threshold at top of script)
                     %Depth_Risk_TH = [0,5,15]; % 1st Value is Surface, 2nd
@@ -427,10 +430,43 @@ end
 
 
                 % Find Dives Stats
+                % finddives2 table ->[start_cue(in seconds) end_cue(in seconds) max_depth cue_at_max_depth mean_depth mean_compression]
                     FD = finddives2(p,fs,th);
                     % Dive Duration
-                    % Max Dive Depth
-                    % Descent Rate
+                    divedur = FD(:,2) - FD(:,1);
+                    maxdivedur = max(divedur);
+                    % Max Dive Depth - in finddives table
+                    % Start Cue Index
+                        Start_Cue_Idx = FD(:,1) * fs;
+                        End_Cue_Idx = FD(:,2) * fs;
+                    % Rates of Depth Change (DC) for each detected dive
+                        DepthChange = NaN(ceil(max(divedur)),length(Start_Cue_Idx)); % Creates array with Columns equal to number of dives and rows equal to longest dives (1 Second = 1 row)
+                        rt = 1; % Amount of time in seconds to measure differenes in depth
+                        for i = 1:length(Start_Cue_Idx)
+                            DC = Start_Cue_Idx(i):rt*fs:End_Cue_Idx(i);
+                            for k = 1:length(DC)- 2 % minus 2 is to prevent going over index when measuring rate
+                               DepthChange(k,i) = mean(p(DC(k+1):DC(k+2)-1)) - mean(p(DC(k):DC(k+1)-1));
+                            end
+                        end
+                        
+                    % Identify Decent Phase
+                    for 1:size(DepthChange,2) % For Each Dive
+                        for 1:length(DepthChange) % For each second of Dive
+                            
+                        end
+                    end
+                        
+                    % Rate of Depth Change Plots
+                        if diveplotson ==  true     
+                            for dp = 1:size(DepthChange,2)
+                                plot(-DepthChange(~isnan(DepthChange(:,dp)),dp)); % Plots only values and removes NaN fillers
+                                if dp == 1
+                                hold on
+                                yline(0)
+                                end
+                            end
+                        end
+                        
                     % Ascent Rate
                     % Descent Heading Change
                     % Surfacing Duration - use findsurfacing script?
