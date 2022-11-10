@@ -408,7 +408,7 @@ end
                 % Mean Lunge Depth
                     MLD = mean(lunges.LungeDepth(ismember(lunges.LungeI,uI)));
                              
-                % IAATO VALUES per deployment for Presence at Surface,
+           % IAATO VALUES per deployment for Presence at Surface,
 
                     %FD_Dive_TH = 5; % Minimum depth needed for finddives2
                     %to consider it a dive (Threshold at top of script)
@@ -450,9 +450,30 @@ end
                         end
                         
                     % Identify Decent Phase
-                    for 1:size(DepthChange,2) % For Each Dive
-                        for 1:length(DepthChange) % For each second of Dive
-                            
+                        Descent_Cue = []; % Number of seconds of into dive considered the "descent"
+                        mintime = 5; % Amount of time (in seconds) NOT descending before defining end
+                        % of descent phase.
+                    for i = 1:size(DepthChange,2) % For Each Dive
+                        for k = 1:length(DepthChange) % For each second of Dive
+                            if sum(DepthChange(k:k+mintime-1,i)<0) == mintime
+                                Descent_Cue(1,i) = k;
+                                break
+                            end
+                        end
+                    end
+
+                    % Identify Ascent Phase
+                        Ascent_Cue = []; % Number of seconds of into dive considered the "ascent"
+                        mintime = 5; % Amount of time (in seconds) NOT ascending before defining start
+                        % of ascent phase. Looks at dive in reverse.
+                    for i = 1:size(DepthChange,2) % For Each Dive
+                        flipdive = flip(DepthChange(:,i)); % flips dive
+                        for k = 1:length(DepthChange) % For each second of Dive
+                            if sum(flipdive(k:k+mintime-1)>0) == mintime
+                                 % last index of dive
+                                Ascent_Cue(1,i) = length(DepthChange)- k;
+                                break
+                            end
                         end
                     end
                         
