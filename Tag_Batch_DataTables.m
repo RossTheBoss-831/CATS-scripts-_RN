@@ -52,6 +52,7 @@ deployPath = 'C:\Users\rossc\Documents\GitHub\CATS Scripts_RN\CATS-scripts-_RN\D
     diveplotlocation = 'X:\PROJECTS\IAATO_Antarctic Humpback Ship Strike Vulnerability\Tag Analysis\Deployment Dive Plots';
     % IAATO
     th = 5; % Minimum depth needed for finddives2 to consider it a dive
+    mintime = 5; % Minimum amount of time (in seconds) threshold for defining Ascent and Descent phases
     %Depth_Risk_TH = [0,5,15]; % 1st Value is Surface, 2nd is Near Surface, 3rd is Max Depth of Risk
 %% Select and Load Tag Directory
 dname = uigetdir();
@@ -84,6 +85,8 @@ Bubble_Nets = table();
 Deploy_Meta = table();
 HourlyMetrics = table();
 DepthPresence = table('Size',[1,500],'VariableTypes',repmat("double",1,500), 'VariableNames', string(1:1:500));
+DepthRates = {}; % Change in Depth, cell array of each dive for each deployment
+Dives = table(); % finddives2 output and stats per dive
 
 valid_FR = zeros(length(dfiles_mn),1);  % Variable to track which deployments are usable for HFR analysis
 
@@ -408,7 +411,7 @@ end
                 % Mean Lunge Depth
                     MLD = mean(lunges.LungeDepth(ismember(lunges.LungeI,uI)));
                              
-           % IAATO VALUES per deployment for Presence at Surface,
+           % IAATO DATA TABLES and VALUES 
 
                     %FD_Dive_TH = 5; % Minimum depth needed for finddives2
                     %to consider it a dive (Threshold at top of script)
@@ -422,25 +425,30 @@ end
                     % Percentage at Depth
                         ATDEPTH_H = 100 - (SURF_H + SUBSURF_H);
 
-                % Seconds within 1m Bin Depths (0 to 500m)
+                % DEPTH PRESENCe TABLE: Seconds within 1m Bin Depths (0 to 500m)
                     h = histogram(abs(p),'BinEdges',[0:1:500]); % create histogram with 1m bins to 500m
-                    hh = array2table(h.Values/fs, 'VariableNames',string([1:1:500]), RowNames=WID); % Convert values of histagram to seconds
+                    hh = array2table(h.Values/fs, 'VariableNames',string([1:1:500]), 'RowNames', string(WID)); % Convert values of histagram to seconds
                     close % close histogram plot
                     DepthPresence = [DepthPresence; hh];
 
 
-                % Find Dives Stats
+                % DIVES TABLE - Dive Statistics and Metadata - finddives2
                 % finddives2 table ->[start_cue(in seconds) end_cue(in seconds) max_depth cue_at_max_depth mean_depth mean_compression]
-                    FD = finddives2(p,fs,th);
-                    % Dive Duration
-                    divedur = FD(:,2) - FD(:,1);
-                    maxdivedur = max(divedur);
-                    % Max Dive Depth - in finddives table
-                    % Start Cue Index
-                        Start_Cue_Idx = FD(:,1) * fs;
-                        End_Cue_Idx = FD(:,2) * fs;
+                    FD = finddives2(p,fs,th); % Threshold defined in Threshold Section of script
+                    
+                    % Calculate Dive Stats and Create Dive Table
+                        % Dive Duration
+                            divedur = FD(:,2) - FD(:,1); % Dive Duration in Seconds
+                            maxdivedur = max(divedur); % Longest Dive in Deployment (Defines length of DepthChange Table)
+                    
+                        % Start and End of Dives - Index Values
+                            Start_Cue_Idx = FD(:,1) * fs;
+                            End_Cue_Idx = FD(:,2) * fs;
+
                     % Rates of Depth Change (DC) for each detected dive
                         DepthChange = NaN(ceil(max(divedur)),length(Start_Cue_Idx)); % Creates array with Columns equal to number of dives and rows equal to longest dives (1 Second = 1 row)
+                        DepthRate(jj) = {DepthChange}; % Add DepthChange to Final cell array
+                        
                         rt = 1; % Amount of time in seconds to measure differenes in depth
                         for i = 1:length(Start_Cue_Idx)
                             DC = Start_Cue_Idx(i):rt*fs:End_Cue_Idx(i);
@@ -451,50 +459,64 @@ end
                         
                     % Identify Decent Phase
                         Descent_Cue = []; % Number of seconds of into dive considered the "descent"
-                        mintime = 5; % Amount of time (in seconds) NOT descending before defining end
+                        mintime = 5; % Threshold amount of time (in seconds) NOT descending before defining end
                         % of descent phase.
                     for i = 1:size(DepthChange,2) % For Each Dive
-                        for k = 1:length(DepthChange) % For each second of Dive
+                        for k = 1:size(DepthChange,1)- mintime  % For each second of Dive
                             if sum(DepthChange(k:k+mintime-1,i)<0) == mintime
                                 Descent_Cue(1,i) = k;
                                 break
                             end
                         end
                     end
-
+                    Descent_idx = Descent_Cue*fs; % Create Index Variable
+                    
                     % Identify Ascent Phase
                         Ascent_Cue = []; % Number of seconds of into dive considered the "ascent"
                         mintime = 5; % Amount of time (in seconds) NOT ascending before defining start
                         % of ascent phase. Looks at dive in reverse.
                     for i = 1:size(DepthChange,2) % For Each Dive
                         flipdive = flip(DepthChange(:,i)); % flips dive
-                        for k = 1:length(DepthChange) % For each second of Dive
+                        for k = 1:size(DepthChange,1)- mintime % For each second of Dive
                             if sum(flipdive(k:k+mintime-1)>0) == mintime
                                  % last index of dive
-                                Ascent_Cue(1,i) = length(DepthChange)- k;
+                                Ascent_Cue(1,i) = size(DepthChange,1)- k;
                                 break
                             end
                         end
                     end
+                    Ascent_idx = Ascent_Cue*fs; % Create Index Variable
+                    
+                    % Create Dive Table
+                            FindDives = FD; % rename for ease of reading in final table
+                            temp_Dives = table(repmat(WID,size(FD,1),1),Start_Cue_Idx, End_Cue_Idx, divedur, Descent_Cue, Descent_idx, Ascent_Cue, Descent_idx, FindDives);
+                            Dives = [Dives; temp_Dives];
+                            
+                            
+                    % Rate of Depth Change Plots - NEEDS WORK
+%                         if diveplotson ==  true     
+%                             for dp = 1:size(DepthChange,2)
+%                                 plot(-DepthChange(~isnan(DepthChange(:,dp)),dp)); % Plots only values and removes NaN fillers
+%                                 if dp == 1
+%                                 hold on
+%                                 yline(0)
+%                                 end
+%                             end
+%                         end
                         
-                    % Rate of Depth Change Plots
-                        if diveplotson ==  true     
-                            for dp = 1:size(DepthChange,2)
-                                plot(-DepthChange(~isnan(DepthChange(:,dp)),dp)); % Plots only values and removes NaN fillers
-                                if dp == 1
-                                hold on
-                                yline(0)
-                                end
-                            end
-                        end
-                        
-                    % Ascent Rate
-                    % Descent Heading Change
+                    
+                    
+                    % Descent End Depth - Depth at which the Descent phase turns to Bottom Phase
+                    
+                    % Ascent Starting Depth - Depth at which the animal begins their ascent to the surface
+                    
+                    % Descent Heading Change - Heading Changes during the Descent phase
+                    
                     % Surfacing Duration - use findsurfacing script?
                     % Number of Breaths
-                    % 
 
-
+                % END OF IAATO ANALYSIS
+                
                  % Create data row and add to table
                     % Added UU, which indicates the number of hours since
                     % the analytical tag on began. Used for the temporal
@@ -507,4 +529,4 @@ end
         end
 end
 
-clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence skippedprh skippedlunge skippedstrategy
+clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives skippedprh skippedlunge skippedstrategy 
