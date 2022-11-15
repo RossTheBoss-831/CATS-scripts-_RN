@@ -1,0 +1,6 @@
+% Test Plots
+
+index = 28;
+plot(-prh.p(Start_Cue_Idx(index):End_Cue_Idx(index)))
+xline(Ascent_Cue(index)*prh.fs,'r')
+xline(Descent_Cue(index)*prh.fs,'b')

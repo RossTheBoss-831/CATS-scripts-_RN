@@ -535,20 +535,12 @@ end
                      
 
                     % Consolidate Variables into Dive Table
-                        %finddives2 export table-> [start_cue(in seconds) end_cue(in seconds) max_depth cue_at_max_depth mean_depth mean_compression]
-                            FindDives = FD; % rename variables for ease of reading
-                            Dive_Start_Cue = FindDives(:,1);
-                            Dive_End_Cue = FindDives(:,2);
-                            Max_Depth = FindDives(:,3);
-                            cue_at_max_depth = FindDives(:,4);
-                            mean_depth = FindDives(:,5);
-                            mean_compression = FindDives(:,6);
-                            % Assign Table
-                                temp_Dives = table(repmat(WID,size(FD,1),1), Dive_Start_Local, TimeStart_Cue_Idx, Dive_Start_Depth, Dive_End_LocalTime, End_Cue_Idx, Dive_End_Depth, divedur, Descent_End_Depth,...
-                                    Descent_Dur, Mean_Descent_Rate, Descent_Cue, Descent_idx, Ascent_Start_Depth, Ascent_Dur, Mean_Ascent_Rate, Ascent_Cue, Ascent_idx,...
-                                    Dive_Start_Cue, Dive_End_Cue, Max_Depth, Max_Depth_LocalTime, cue_at_max_depth, mean_depth, mean_compression);
-                                Dives = [Dives; temp_Dives];
-                                
+                            FindDives = FD; % rename for ease of reading in final table
+                            temp_Dives = table(repmat(WID,size(FD,1),1), Dive_Start_Local, TimeStart_Cue_Idx, Dive_Start_Depth, Dive_End_LocalTime, End_Cue_Idx, Dive_End_Depth, divedur, Descent_Dur, Mean_Descent_Rate, Descent_Cue, Descent_idx, Mean_Ascent_Rate, Ascent_Dur, Ascent_Cue, Ascent_idx, FindDives,  Max_Depth_LocalTime);
+                            Dives = [Dives; temp_Dives];
+                            % NOTES
+                                % TO ADD: Dive Start Local Time, End Local Time
+                            
                             
                     % Rate of Depth Change Plots - NEEDS WORK
 %                         if diveplotson ==  true     
