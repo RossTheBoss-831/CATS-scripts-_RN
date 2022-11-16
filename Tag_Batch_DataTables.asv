@@ -523,23 +523,11 @@ end
                         Descent_idx = (FD(:,1) + Descent_Cue) * prh.fs; % Create Index Variable
 
                     % Descent End Depth - Depth at which the Descent phase turns to Bottom Phase
-                        Descent_End_Depth = []; 
-                        for DD = 1:length(Descent_idx)
-                             if isnan(Descent_idx(DD))
-                                 Descent_End_Depth(DD,1) = NaN;
-                             else
-                                 Descent_End_Depth(DD,1) = prh.p(Descent_idx(DD));
-                             end
-                         end
+                   ]]
+                        Descent_End_Depth = prh.p(Descent_idx);
                     % Ascent Start Depth - Depth at which the animal begins their ascent to the surface
-                         Ascent_Start_Depth = [];
-                         for DD = 1:length(Ascent_idx)
-                             if isnan(Ascent_idx(DD))
-                                 Ascent_Start_Depth(DD,1) = NaN;
-                             else
-                                 Ascent_Start_Depth(DD,1) = prh.p(Ascent_idx(DD));
-                             end
-                         end
+                        Ascent_Start_Depth = prh.p(Ascent_idx);
+
                     % Descent Duration - Duration from Dive Start to End of Descent
                         Descent_Dur = Descent_Cue;
                     % Ascent Duration - Duration from Start of Ascent to End of Dive (surface)
