@@ -411,7 +411,7 @@ end
                 % Mean Lunge Depth
                     MLD = mean(lunges.LungeDepth(ismember(lunges.LungeI,uI)));
                              
-           % IAATO DATA TABLES and VALUES 
+% IAATO DATA TABLES and VALUES 
 
                     %FD_Dive_TH = 5; % Minimum depth needed for finddives2
                     %to consider it a dive (Threshold at top of script)
@@ -544,7 +544,7 @@ end
                             mean_depth = FindDives(:,5);
                             mean_compression = FindDives(:,6);
                             % Assign Table
-                                temp_Dives = table(repmat(WID,size(FD,1),1), Dive_Start_Local, TimeStart_Cue_Idx, Dive_Start_Depth, Dive_End_LocalTime, End_Cue_Idx, Dive_End_Depth, divedur, Descent_End_Depth,...
+                                temp_Dives = table(repmat(WID,size(FD,1),1), Dive_Start_LocalTime, Start_Cue_Idx, Dive_Start_Depth, Dive_End_LocalTime, End_Cue_Idx, Dive_End_Depth, divedur, Descent_End_Depth,...
                                     Descent_Dur, Mean_Descent_Rate, Descent_Cue, Descent_idx, Ascent_Start_Depth, Ascent_Dur, Mean_Ascent_Rate, Ascent_Cue, Ascent_idx,...
                                     Dive_Start_Cue, Dive_End_Cue, Max_Depth, Max_Depth_LocalTime, cue_at_max_depth, mean_depth, mean_compression);
                                 Dives = [Dives; temp_Dives];
