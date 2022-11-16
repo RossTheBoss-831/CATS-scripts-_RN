@@ -425,14 +425,11 @@ end
                     % Percentage at Depth
                         ATDEPTH_H = 100 - (SURF_H + SUBSURF_H);
 
-                % DEPTH PRESENCe TABLE: Seconds within 1m Bin Depths (0 to 500m)
+                % DEPTH PRESENCE TABLE: Seconds within 1m Bin Depths (0 to 500m)
                     h = histogram(abs(prh.p),'BinEdges',[0:1:500]); % create histogram with 1m bins to 500m
                     hh = array2table(h.Values/prh.fs, 'VariableNames',string([1:1:500]), 'RowNames', string(WID)); % Convert values of histagram to seconds
                     close % close histogram plot
                     DepthPresence = [DepthPresence; hh];
-
-                    
-
 
                 % DIVES TABLE - Dive Statistics and Metadata - finddives2
                 % finddives2 table ->[start_cue(in seconds) end_cue(in seconds) max_depth cue_at_max_depth mean_depth mean_compression]
@@ -458,11 +455,12 @@ end
                                DepthChange(k,i) = mean(prh.p(DC(k+1):DC(k+2)-1)) - mean(prh.p(DC(k):DC(k+1)-1));
                             end
                         end
+
                     % Add DepthChange to Final cell array
                         DepthRate(jj) = {DepthChange}; 
 
                         
-                    % Identify Decent Phase
+                    % Auto-Identify Decent Phase
                         Descent_Cue = []; % Number of seconds of into dive considered the "descent"
                         window = 6; %  Window amount of time (in seconds) reviewed of which mintime is evaluated
                         mintime = 5; % Threshold amount of seconds needing to be NOT descending before defining end
@@ -476,7 +474,7 @@ end
                         end
                     end
                     
-                    % Identify Ascent Phase
+                    % Auto-Identify Ascent Phase
                         Ascent_Cue = []; % Number of seconds of into dive considered the "ascent"
                         window = 6;
                         mintime = 5; % Amount of time (in seconds) NOT ascending before defining start
@@ -492,7 +490,7 @@ end
                         end
                     end
 
-                    % Check if Ascent and Descent overlap, if so, swap variables. ( Overlaping can occur on short or irregular dives where 
+                    % Check if Ascent and Descent overlap, if so, swap variables. (Overlaping can occur on short or irregular dives where 
                     % the opposite detection works better) Thus, swapping helps better identify phases.
                         for ii = 1:length(Ascent_Cue)
                             if Ascent_Cue(ii) < Descent_Cue(ii) & Ascent_Cue(ii)*Descent_Cue(ii) ~= 0
@@ -532,7 +530,37 @@ end
                         Dive_End_LocalTime = DT(End_Cue_Idx); % Dive End Time
                         Max_Depth_LocalTime = DT(MaxDepth_Cue_Idx); % Time at Max Depth
 
-                     
+                    % Heading Changes during Descent
+                        % convert to degrees - NOT TRUE DEGREES - ONLY RELATIVE DEGREES
+                            tempHead = (prh.head + abs(min(prh.head)));
+                            Degree_Head = (tempHead/max(tempHead))*360; % Convert from -pi:pi to 0:360
+                            %histogram(Degree_Head)   
+
+
+            
+                  % GETTING ERRORS - FIX HERE ON HEADING CHANGE - SOMETHING
+                  % IS WRONG
+                        % For each Descent, calculate changes in heading
+                            for ii = 1:length(Descent_idx)
+                                
+                                Didx = Start_Cue_Idx(ii):Descent_idx(ii); % descent index
+                                Descent_Head = Degree_Head(Didx); % Heading values during descent
+    
+                                Head_Change = []; % reset array
+                                for gg = 1:length(Didx) - 1 % Find differences between original dive heading and headings throughout Descent
+                                    Head_Change(gg) = head_diff(Descent_Head(1),Descent_Head(gg));
+                                end
+                            % Max Change in Heading - ONLY FINDS THE 1st Value. If the max heading happens twice on the descent it ignores anything after 1st.
+                                [Max_Head_Change(ii,1), Max_Head_Change_Idx(ii,1)] = max(Head_Change);
+                            % Depth of Max Heading Change
+                                descent_depth = prh.p(Didx);
+                                Max_Head_Change_Depth(ii,1) = descent_depth(Max_Head_Change_Idx(1));
+                            % Time into Dive of Max Heading Change
+                                Max_Head_Change_Seconds(ii,1) = Max_Head_Change_Idx(1)/prh.fs;
+                            end
+
+
+
 
                     % Consolidate Variables into Dive Table
                         %finddives2 export table-> [start_cue(in seconds) end_cue(in seconds) max_depth cue_at_max_depth mean_depth mean_compression]
