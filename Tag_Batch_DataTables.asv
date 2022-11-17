@@ -523,11 +523,23 @@ end
                         Descent_idx = (FD(:,1) + Descent_Cue) * prh.fs; % Create Index Variable
 
                     % Descent End Depth - Depth at which the Descent phase turns to Bottom Phase
-                   ]]
-                        Descent_End_Depth = prh.p(Descent_idx);
+                        Descent_End_Depth = []; 
+                        for DD = 1:length(Descent_idx)
+                             if isnan(Descent_idx(DD))
+                                 Descent_End_Depth(DD,1) = NaN;
+                             else
+                                 Descent_End_Depth(DD,1) = prh.p(Descent_idx(DD));
+                             end
+                         end
                     % Ascent Start Depth - Depth at which the animal begins their ascent to the surface
-                        Ascent_Start_Depth = prh.p(Ascent_idx);
-
+                         Ascent_Start_Depth = [];
+                         for DD = 1:length(Ascent_idx)
+                             if isnan(Ascent_idx(DD))
+                                 Ascent_Start_Depth(DD,1) = NaN;
+                             else
+                                 Ascent_Start_Depth(DD,1) = prh.p(Ascent_idx(DD));
+                             end
+                         end
                     % Descent Duration - Duration from Dive Start to End of Descent
                         Descent_Dur = Descent_Cue;
                     % Ascent Duration - Duration from Start of Ascent to End of Dive (surface)
@@ -566,25 +578,44 @@ end
                             for ii = 1:length(Descent_idx)
                                 
                                 Didx = Start_Cue_Idx(ii):Descent_idx(ii); % descent index
-                                Descent_Head = Degree_Head(Didx); % Heading values during descent
                                 
-                                Head_Change = []; % reset array per descent
-                                for gg = 1:length(Didx) % Find differences between original dive heading and headings throughout Descent
-                                    Head_Change(gg) = head_diff(Descent_Head(1),Descent_Head(gg));
+                                % Insert NaN's if Descent is NaN
+                                if isnan(Didx)
+                                % Max Change in Heading - set to NaN
+                                    Max_Head_Change(ii,1) = NaN;
+                                    Max_Head_Change_Idx(ii,1) = NaN;
+
+                                % Depth of Max Heading Change
+                                    Max_Head_Change_Depth(ii,1) = NaN;
+
+                                % Time into Dive of Max Heading Change
+                                    Max_Head_Change_Seconds(ii,1) = NaN;
+
+                                % Heading Change at End of Descent
+                                    Descent_End_Heading_Change(ii,1) = NaN;
+                                    
+                                else % If Descent is NOT a NaN
+                                   Descent_Head = Degree_Head(Didx); % Heading values during descent
+                                   
+                                    Head_Change = []; % reset array per descent
+                                    for gg = 1:length(Didx) % Find differences between original dive heading and headings throughout Descent
+                                        Head_Change(gg) = head_diff(Descent_Head(1),Descent_Head(gg));
+                                    end
+
+                                % Max Change in Heading - ONLY FINDS THE 1st Value. If the max heading happens twice on the descent it ignores anything after 1st.
+                                    [Max_Head_Change(ii,1), Max_Head_Change_Idx(ii,1)] = max(Head_Change);
+
+                                % Depth of Max Heading Change
+                                    descent_depth = prh.p(Didx);
+                                    Max_Head_Change_Depth(ii,1) = descent_depth(Max_Head_Change_Idx(ii));
+
+                                % Time into Dive of Max Heading Change
+                                    Max_Head_Change_Seconds(ii,1) = Max_Head_Change_Idx(ii)/prh.fs;
+
+                                % Heading Change at End of Descent
+                                    Descent_End_Heading_Change(ii,1) = Head_Change(end);
+                                    
                                 end
-                                
-                            % Max Change in Heading - ONLY FINDS THE 1st Value. If the max heading happens twice on the descent it ignores anything after 1st.
-                                [Max_Head_Change(ii,1), Max_Head_Change_Idx(ii,1)] = max(Head_Change);
-                                
-                            % Depth of Max Heading Change
-                                descent_depth = prh.p(Didx);
-                                Max_Head_Change_Depth(ii,1) = descent_depth(Max_Head_Change_Idx(ii));
-                                
-                            % Time into Dive of Max Heading Change
-                                Max_Head_Change_Seconds(ii,1) = Max_Head_Change_Idx(ii)/prh.fs;
-                                
-                            % Heading Change at End of Descent
-                                Descent_End_Heading_Change(ii,1) = Head_Change(end);
                             end
 
 
