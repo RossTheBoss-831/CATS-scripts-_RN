@@ -86,6 +86,7 @@ HourlyMetrics = table();
 DepthPresence = table();
 DepthRate = {}; % Change in Depth, cell array of each dive for each deployment
 Dives = table(); % finddives2 output and stats per dive
+Surfacings = {}; % Cell structure for surfacings analysis output for each tag
 
 valid_FR = zeros(length(dfiles_mn),1);  % Variable to track which deployments are usable for HFR analysis
 
@@ -634,7 +635,16 @@ end
                                     Max_Head_Change, Max_Head_Change_Depth, Max_Head_Change_Seconds, Descent_End_Heading_Change, mean_depth, mean_compression);
                                 Dives = [Dives; temp_Dives];
                                 
-                            
+                    % SURFACINGS ANALYSIS - using the findsurfacings.m script in CATS TOOLS
+                        period = 60; % Default Value for time chunck period of analysis 
+                        thresh = 1; % Default threshold for surfacing detection
+                        surfs = []; % Reset Variable
+                        surfs = findsurfacings(prh.p,prh.fs,prh.tagon,period,thresh);
+                    
+                    % Add Surfacings analysis to cell table
+                        Surfacings(jj) = {surfs};
+                    
+                    
                     % Rate of Depth Change Plots - NEEDS WORK
 %                         if diveplotson ==  true     
 %                             for dp = 1:size(DepthChange,2)
@@ -655,4 +665,4 @@ end
     
 end
 
-clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives skippedprh skippedlunge skippedstrategy 
+clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives Surfacings skippedprh skippedlunge skippedstrategy 

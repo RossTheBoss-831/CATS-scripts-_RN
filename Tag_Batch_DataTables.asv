@@ -576,11 +576,9 @@ end
                                 Max_Head_Change_Seconds = [];
                                 
                             for ii = 1:length(Descent_idx)
-                                
                                 Didx = Start_Cue_Idx(ii):Descent_idx(ii); % descent index
                                 
-                                % Insert NaN's if Descent is NaN
-                                if isnan(Didx)
+                                if isnan(Didx) % Insert NaN's if Descent is NaN
                                 % Max Change in Heading - set to NaN
                                     Max_Head_Change(ii,1) = NaN;
                                     Max_Head_Change_Idx(ii,1) = NaN;
@@ -636,7 +634,18 @@ end
                                     Max_Head_Change, Max_Head_Change_Depth, Max_Head_Change_Seconds, Descent_End_Heading_Change, mean_depth, mean_compression);
                                 Dives = [Dives; temp_Dives];
                                 
-                            
+                    % SURFACINGS ANALYSIS - using the findsurfacings.m script in CATS TOOLS
+                        period = 60; % Default Value for time chunck period of analysis 
+                        thresh = 1; % Default threshold for surfacing detection
+                        surfs = []; % Reset Variable
+                        surfs = findsurfacings(prh.p,prh.fs,prh.tagon,period,thresh);
+                        
+                        Surfacings(jj) = {surfs};
+                    
+                    
+                    
+                    
+                    
                     % Rate of Depth Change Plots - NEEDS WORK
 %                         if diveplotson ==  true     
 %                             for dp = 1:size(DepthChange,2)
