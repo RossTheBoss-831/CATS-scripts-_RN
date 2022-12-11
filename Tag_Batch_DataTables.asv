@@ -86,7 +86,6 @@ HourlyMetrics = table();
 DepthPresence = table();
 DepthRate = {}; % Change in Depth, cell array of each dive for each deployment
 Dives = table(); % finddives2 output and stats per dive
-Surfacings = {}; % Cell structure for surfacings analysis output for each tag
 
 valid_FR = zeros(length(dfiles_mn),1);  % Variable to track which deployments are usable for HFR analysis
 
@@ -640,9 +639,11 @@ end
                         thresh = 1; % Default threshold for surfacing detection
                         surfs = []; % Reset Variable
                         surfs = findsurfacings(prh.p,prh.fs,prh.tagon,period,thresh);
-                    
-                    % Add Surfacings analysis to cell table
+                        
                         Surfacings(jj) = {surfs};
+                    
+                    
+                    
                     
                     
                     % Rate of Depth Change Plots - NEEDS WORK
@@ -665,4 +666,4 @@ end
     
 end
 
-clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives Surfacings skippedprh skippedlunge skippedstrategy 
+clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives skippedprh skippedlunge skippedstrategy 
