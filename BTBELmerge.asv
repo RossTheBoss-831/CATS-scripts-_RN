@@ -1,0 +1,24 @@
+% Merge BTBEL Export Tables
+
+% Set Export Filename
+filename = "BTBELmerged.xlsx"
+
+% Select Files
+[importfiles, path] = uigetfile('*.xlsx','Select the INPUT DATA FILE(s)','MultiSelect','on');
+filename2 = [char(path),char(filename)]; % Add path
+
+% Import and Write Table for each file
+for ii = 1:length(importfiles)
+    filepath = [char(path), char(importfiles(ii))]
+    T = readtable(filepath)
+    fn
+
+    writetable(T,filename2,'sheet',ii)
+end
+
+% Create Table
+    % example
+ sheet = 1;
+ writetable(Tab1,filename,'sheet',sheet,'Range','A1')
+ sheet = 2;
+ writetable(Tab2,filename,'sheet',sheet,'Range','A1')
