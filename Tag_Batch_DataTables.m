@@ -206,7 +206,9 @@ end
       else
           lunge_count = 0;
       end
-      
+
+ 
+
       % Number of Bubble Net Events (HC)
       % Number of Bubble Net Events (LC)
       if ~isempty(strategy)
@@ -233,7 +235,7 @@ end
             ATDEPTH = 100 - (SURF + SUBSURF);
 
       % Add to Deploy_Meta Table
-      Deploy_Meta_temp = table(string(whaleName),tagon_localtime,tagoff_localtime,UTC,data_duration,vid_duration,aud_duration,lunge_count,BubbleNetHQ_count,BubbleNetLQ_count,SURF, SUBSURF, ATDEPTH);
+      Deploy_Meta_temp = table(string(whaleName),tagon_localtime,tagoff_localtime,UTC,D_Lat,D_Lon,data_duration,vid_duration,aud_duration,lunge_count,BubbleNetHQ_count,BubbleNetLQ_count,SURF, SUBSURF, ATDEPTH);
       Deploy_Meta = [Deploy_Meta;Deploy_Meta_temp];
      
   end
