@@ -41,10 +41,10 @@
 clear;
 %Solar Angle
 %addpath(genpath('D:\LTER_Humpback Foraging in the Antarctic Summer\Analysis\Analysis 2 (Generalized Modelling)\Public scripts\chadagreene-CDT-9ef9171'))
-addpath(genpath('C:\Users\rossc\Documents\GitHub\CATS Scripts_RN'));
-addpath(genpath('C:\Users\rossc\Documents\GitHub\CATS-Methods-Materials'));
+addpath(genpath('C:\Users\rossc\OneDrive\Documents\GitHub\CATS-scripts-_RN'));
+addpath(genpath('C:\Users\rossc\OneDrive\Documents\GitHub\CATS-Methods-Materials'));
 % path of DeployGPS.mat
-deployPath = 'C:\Users\rossc\Documents\GitHub\CATS Scripts_RN\CATS-scripts-_RN\DeployGPS.mat';
+deployPath = 'C:\Users\rossc\OneDrive\Documents\GitHub\CATS-scripts-_RN\DeployGPS.mat';
 
 %% IAATO Analysis
     %diveplotson = true; % set to false for no dive plots
@@ -84,6 +84,7 @@ Bubble_Nets = table();
 Deploy_Meta = table();
 HourlyMetrics = table();
 DepthPresence = table();
+LungeTable = table();
 DepthRate = {}; % Change in Depth, cell array of each dive for each deployment
 Dives = table(); % finddives2 output and stats per dive
 Surfacings = {}; % Cell structure for surfacings analysis output for each tag
@@ -235,7 +236,7 @@ end
             ATDEPTH = 100 - (SURF + SUBSURF);
 
       % Add to Deploy_Meta Table
-      Deploy_Meta_temp = table(string(whaleName),tagon_localtime,tagoff_localtime,UTC,D_Lat,D_Lon,data_duration,vid_duration,aud_duration,lunge_count,BubbleNetHQ_count,BubbleNetLQ_count,SURF, SUBSURF, ATDEPTH);
+      Deploy_Meta_temp = table(string(whaleName),tagon_localtime,tagoff_localtime,UTC,data_duration,vid_duration,aud_duration,lunge_count,BubbleNetHQ_count,BubbleNetLQ_count,SURF, SUBSURF, ATDEPTH);
       Deploy_Meta = [Deploy_Meta;Deploy_Meta_temp];
      
   end
@@ -663,8 +664,19 @@ end
                     % Number of Breaths
 
                 % END OF IAATO ANALYSIS
+
+
+                % LUNGE STATS TABLE (Made for Jenny Allen)
+                    % Uses function LungeStats
+                if exist('lunges','var')
+                    LungeTable_temp = LungeStats(lunges.LungeI,prh.p,prh.DN,prh.INFO.whaleName,prh.INFO.UTC);
+                    LungeTable = [LungeTable; LungeTable_temp];
+                end
+
+
+
         end
     
 end
 
-clearvars -except valid_FR HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives Surfacings skippedprh skippedlunge skippedstrategy 
+clearvars -except valid_FR LungeTable HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives Surfacings skippedprh skippedlunge skippedstrategy 
