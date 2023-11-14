@@ -73,8 +73,8 @@ while isempty(checkTime)
     % If Time is not found automatically, try using input Bounding Boxes
         if isempty(Time) & ~isempty(TimePosition)
             expandAttempt = 10; % Number of times it expands the bounds looking for a time pattern
-            scaleFactor_height = 1.4; % Expansion factor if not found with original bounds on each iteration
-            scaleFactor_width = 1.05; % Expansion factor if not found with original bounds on each iteration
+            scaleFactor_height = 1.3; % Expansion factor if not found with original bounds on each iteration
+            scaleFactor_width = 1.1; % Expansion factor if not found with original bounds on each iteration
 
             BB = 0; % Tracker index
 

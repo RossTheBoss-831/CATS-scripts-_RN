@@ -1,33 +1,78 @@
-% Code to Correct BORIS Notations to Data Overlay
+% BORIS_TimeSync
+
+    % This script was made to correct BORIS audits performed on CATS tag
+    % videos that consist of a data overlay, and where that data overlay
+    % displays at the correct time synchronization to the displayed video.
+
+    % This script is not limited to BORIS data, any media durations can be
+    % input and the assocaited data overlay will be output. However, this
+    % was crafted with BORIS audits in mind.
+
     % Required Toolboxes
         % Computer Vision
+        % Statistics
 
-    %INPUTS:
-        % BORIS_Media
+    % INPUTS:
+        % Obs_Media
             % n x 1 string array of Media File Names (ex. "mn201017-54 (03).mp4") related
             % to Durations Matrix. This matrix can include media names not
             % present in VidDir. Only videos matching those in VidDir will
-            % be analyzed.
-        % BORIS_Durations
+            % be analyzed unless Process Input is set to "All".
+        % Obs_Durations
             % n x 2 matrix of [Start Durations, End Durations] in seconds
+            % These should be X seconds into the media duration
         % VidDir
             % n x 1 string array of full file paths of Video Directories
-            % you like to load in and analyze.
+            % you would like to load in and analyze.
         % Process
             % Set to "All" if you would like all Videos in the VidDir
             % variable to be analyzed, rather than just videos that match
             % values in the BORIS media.
+            % Setting to "All" will process metadata for the dataVid,
+            % regardless if an Observation is found associated with that
+            % video.
+            % If you only wish to process videos present in both the Video
+            % Directory and the Observation Media, leave this variable
+            % blank: []
 
     % OUTPUTS
-        % dataObs - Corrected times for input observations
-        % dataVid - Table of Start and End Times of each video Processed
+        % dataObs - Metadata related to each BORIS data observation entered
+        % in INPUT. This variable maintains Index numbers of INPUT.
+        % Unanalyzed Observations will be included in output with filler
+        % data.
+            % ObsMedia - Media file name that was processed for this Observation
+            % ObsDuration_Start -  Original Start Duration from input variable BORIS_Durations
+            % ObsDuration_Stop - Original Stop Duration from input variable BORIS_Durations
+            % CorrDuration_Start - Corrected Duration (Observation StartTime - Video StartTime)
+                % Video StartTime taken from the 'StartTime' variable from the Output dataVid table
+            % StartTime - DURATION - Datetime of data overlay at ObsDuration_Start
+            % StartTime_string - STRING - Datetime of data overlay at ObsDuration_Start
+            % StartIndex - Index of data overlay at ObsDuration_Start
+            % CorrDuration_End - Corrected Duration (Observation EndTime - Video StartTime)
+                % Video StartTime taken from the 'StartTime' variable from the Output dataVid table
+            % EndTime - DURATION - Datetime of data overlay at ObsDuration_End
+            % EndTime_string - STRING - Datetime of data overlay at ObsDuration_End
+            % EndIndex - Index of data overlay at ObsDuration_End
+        % dataVid - Table of metadata related to each video analyzed
+        	% Vid_Directory - Directory of Analyzed Video
+	        % Media_Name - Media Name of analyzed Video
+	        % StartMediaDuration - Video Duration in which media began (typically 0, unless black inital frames)
+	        % StartTime - DURATION - Data time as displayed in data overlay at StartMediaDuration
+	        % StartTime_string - STRING - Data time as displayed in data overlay at StartMediaDuration
+	        % StartIndex - Index of data overlay at StartMediaDuration
+	        % EndMediaDuration - Video Duration in which media ends (Final readable frame)
+	        % EndTime - DURATION - Data time as displayed in data overlay at EndMediaDuration
+	        % EndTime_string - STRING - Data time as displayed in data overlay at EndMediaDuration
+	        % EndIndex - Index of data overlay at EndMediaDuration
+	        % TotalVideoDuration - Total Duration of Video (As included in Video Object Variable, this may not equal EndMediaDuration - StartMediaDuration). This includes frames in which data overlay can not be read (black frames).
+	        % Observation_indicies - Indicies of the Output dataObs that were analyzed in association with each video
         % Obsidx - Index of inputs BORIS_Media and BORIS_Durations that
             % were analyzed by this code
 
     % Current Bugs:
         % Duration Delta is not yet incorporated into an output
 
-function [dataObs, dataVid, Obsidx] = BORIS_TimeSync(BORIS_Media,BORIS_Durations,VidDir,Process)
+function [dataObs, dataVid, Obsidx] = BORIS_TimeSync(Obs_Media,Obs_Durations,VidDir,Process)
 
 if ~exist('Process','var')
     Process = "BORIS";
@@ -48,13 +93,13 @@ if isempty(VidDir)
 end
 
 % If No BORIS Arrays were included
-if isempty(BORIS_Media) || isempty(BORIS_Durations)
+if isempty(Obs_Media) || isempty(Obs_Durations)
     BORIS = importMultiBORIS;
     pat = '[a-z]{2}\d{6}-\d{1,2}[^\/\\]+.mp4';
-    BORIS_Media = regexp(BORIS.MediaFileName, pat, 'match');
-    BORIS_Media(cellfun(@isempty,BORIS_Media)) = {""}; % Finds no Matches and replaces with empty string (Unprocessed vids will not match)
-    BORIS_Media = [BORIS_Media{:}]';
-    BORIS_Durations = [BORIS.Start_s_, BORIS.Stop_s_];
+    Obs_Media = regexp(BORIS.MediaFileName, pat, 'match');
+    Obs_Media(cellfun(@isempty,Obs_Media)) = {""}; % Finds no Matches and replaces with empty string (Unprocessed vids will not match)
+    Obs_Media = [Obs_Media{:}]';
+    Obs_Durations = [BORIS.Start_s_, BORIS.Stop_s_];
 end
 
 % Extract Media name from filepaths of Deployment Videos
@@ -64,7 +109,7 @@ VidMedia(cellfun(@isempty,VidMedia)) = {""}; % Finds no Matches and replaces wit
 VidMedia = [VidMedia{:}]';
 
 % For Each Unique Media Filename in BORIS - MAKE FOR LOOP
-UniqueMedia = unique(BORIS_Media(BORIS_Media ~= ""));
+UniqueMedia = unique(Obs_Media(Obs_Media ~= ""));
 
 % Find BORIS Media and Video Directory that match
     % Will process only Videos that are both in BORIS and Directory files
@@ -77,25 +122,32 @@ else
 end
 
 % Create data Table for Observations
-dataObs = cell2table(cell(0,9), 'VariableNames', {'ObsMedia','ObsDuration_Start','ObsDuration_Stop', ...
-    'StartTime','StartTime_string','StartIndex', ...
-    'EndTime','EndTime_string','EndIndex'});
+dataObs = cell2table(cell(0,11), 'VariableNames', {'ObsMedia','ObsDuration_Start','ObsDuration_Stop', ...
+    'CorrDuration_Start','StartTime','StartTime_string','StartIndex', ...
+    'CorrDuration_Stop','StopTime','StopTime_string','StopIndex'});
 dataVid = cell2table(cell(0,12), 'VariableNames', {'Vid_Directory','Media_Name', ...
     'StartMediaDuration','StartTime','StartTime_string','StartIndex', ...
     'EndMediaDuration','EndTime','EndTime_string','EndIndex', ...
     'TotalVideoDuration','Observation_indicies'});
+dataObs.Properties.VariableUnits = {'media_name', 'seconds','seconds','seconds','time','time','PRHindex','seconds','time','time','PRHindex'};
+dataVid.Properties.VariableUnits = {'directory', 'media_name','seconds','time','time','PRHindex','seconds','time','time','PRHindex','seconds','dataObsIndex'};
+
 
 % Create Data Arrays:
     % Unanalyzed durations will have filler data added
     % Times = Empty Duration
     % Index = 0
     % Time_string = Empty String
-B = 1:size(BORIS_Durations,1); % Size of Arrays
+B = 1:size(Obs_Durations,1); % Size of Arrays
+CorrDuration_Start(B,1) = duration();
 StartTime(B,1) = duration();
+        StartTime.Format = StartTime.Format + ".S";
 StartTime_string(B,1) = string();
 StartTime_index(B,1) = 0;
 
+CorrDuration_Stop(B,1) = duration();
 StopTime(B,1) = duration();
+    StopTime.Format = StopTime.Format + ".S";
 StopTime_string(B,1) = string();
 StopTime_index(B,1) = 0;
 
@@ -118,7 +170,7 @@ for aa = 1:length(AnalyzeVids)
     Vidx = find(VidMedia == AV);
 
     % Find Video Indecies in BORIS Media
-    Bidx = find(BORIS_Media == AV);
+    Bidx = find(Obs_Media == AV);
 
     % To correct an issue where Video names in Video Folder may not always
         % be exactly the same as what was audited. Sometimes with an extra (1),
@@ -126,12 +178,12 @@ for aa = 1:length(AnalyzeVids)
         % to confirm the same video.
     if isempty(Bidx) % try to truncate video name to see if you find matches
         TruncName = regexp(AV, '^(.*?\))', 'tokens', 'once');
-        Bidx = find(contains(BORIS_Media, TruncName));
+        Bidx = find(contains(Obs_Media, TruncName));
         if ~isempty(Bidx)
             % Prompt User to answer if videos are the same
             message = ["A video from your video folder found no perfect match in your BORIS data, but a partial match was found:", ...
                 strcat("In Video Diretory: ",string(AV)),...
-                strcat("In BORIS Media: ", string(BORIS_Media(Bidx))),...
+                strcat("In BORIS Media: ", string(Obs_Media(Bidx))),...
                 "Would you like to proceed with this Analysis by treating these as the same video?"];
             answer = questdlg(message, ...
                 'Partial Match Found',...
@@ -176,71 +228,79 @@ for aa = 1:length(AnalyzeVids)
     for OO = 1:numel(Bidx)
         IDX = Bidx(OO);
         % Get Observation Start Time
-        [StartTime(IDX),StartTime_string(IDX),StartTime_index(IDX), DurDelta, TimePosition, IndexPosition] = ocrTime(vidObj,BORIS_Durations(IDX,1), TimePosition, IndexPosition);
+        [StartTime(IDX),StartTime_string(IDX),StartTime_index(IDX), DurDelta, TimePosition, IndexPosition] = ocrTime(vidObj,Obs_Durations(IDX,1), TimePosition, IndexPosition);
         
+        % Get Corrected Start Duration
+        CorrDuration_Start(IDX) = seconds(StartTime(IDX) - Time);
+
         % Get Observation End Time
-        if BORIS_Durations(IDX,1) ~= BORIS_Durations(IDX,2) % If Start and Stop are not at same time
+        if Obs_Durations(IDX,1) ~= Obs_Durations(IDX,2) % If Start and Stop are not at same time
 
             % Check that Duration is not longer than video
                 % If Obs is longer than video, change duration to the
                 % second to last frame. The Final Frame cannot be read by
                 % OCR.
-            if BORIS_Durations(IDX,2) > vidObj.Duration
+            if Obs_Durations(IDX,2) > vidObj.Duration
                 
                 % Display Data Change to User
                 disp(["End Duration of Observation Longer than Video, changed Duration to match Video End", ...
-                    string(BORIS_Media(IDX)), ...
-                    strcat("Delta: ", string(finalFrameDuration - BORIS_Durations(IDX,2)))])
+                    string(Obs_Media(IDX)), ...
+                    strcat("Delta: ", string(finalFrameDuration - Obs_Durations(IDX,2)))])
 
                 % Change BORIS Duration value to that of Read Value
-                BORIS_Durations(IDX,2) = finalFrameDuration;
+                Obs_Durations(IDX,2) = finalFrameDuration;
             end
 
-            [StopTime(IDX),StopTime_string(IDX),StopTime_index(IDX), DurDelta, TimePosition, IndexPosition] = ocrTime(vidObj,BORIS_Durations(IDX,2), TimePosition, IndexPosition);
+        [StopTime(IDX),StopTime_string(IDX),StopTime_index(IDX), DurDelta, TimePosition, IndexPosition] = ocrTime(vidObj,Obs_Durations(IDX,2), TimePosition, IndexPosition);
+
+        % Get Corrected Stop Duration
+        CorrDuration_Stop(IDX) = seconds(StopTime(IDX) - Time);
 
         else % If Start and Stop are at same time, set Stop to Start Values
             StopTime(IDX) = StartTime(IDX);
             StopTime_string(IDX) = StartTime_string(IDX);
             StopTime_index(IDX) = StartTime_index(IDX);
+            CorrDuration_Stop(IDX) = CorrDuration_Start(IDX);
         end
     end
     disp(strcat("OCR Complete for: ", AV));
 end
     % Add All Observation data arrays to Table
-    newRowTable2 = table(BORIS_Media,BORIS_Durations(:,1),BORIS_Durations(:,2), ...
-        StartTime,StartTime_string,StartTime_index, ...
-        StopTime,StopTime_string,StopTime_index, ...
+    newRowTable2 = table(Obs_Media,Obs_Durations(:,1),Obs_Durations(:,2), ...
+        CorrDuration_Start,StartTime,StartTime_string,StartTime_index, ...
+        CorrDuration_Stop,StopTime,StopTime_string,StopTime_index, ...
         'VariableNames', dataObs.Properties.VariableNames);
     dataObs = [dataObs;newRowTable2];
 
     disp(strcat("BORIS_TimeSyc Complete! :)"));
 
-
-% Save Data
-
-% % Convert data1 to a table and save to Sheet1
-% writetable(a, 'mn150321-3_TimeSync.xlsx', 'Sheet', 'Sheet1');
-% 
-% % Convert data2 to a table and save to Sheet2
-% writetable(b, 'mn150321-3_TimeSync.xlsx', 'Sheet', 'Sheet2');
-% 
-% % Convert data2 to a table and save to Sheet2
-% writetable(table(idx), 'mn150321-3_TimeSync.xlsx', 'Sheet', 'Sheet3');
-
-
-
-
-
-
 end
 
+%% Save Data
+
+saveloc = 'E:\BigGulp\Research\PROJECTS\Antarctic Humpback Bubble Net Behavior\Video Audit\Simplified Audit\Project Folders\TimeSync Tables\'
+
+% Save Data
+pattern = '^(.*?)(?=\()';
+deploymentID = strtrim(regexp(dataVid.Media_Name(1), pattern , 'tokens', 'once'));
+filename = '_TimeSync';
+
+% Save Video Metadata to Excel Sheet
+writetable(dataVid, strcat(saveloc,deploymentID,filename,'.xlsx'), 'Sheet', 'Video data');
+
+% Save Observation data to Excel Sheet
+writetable(dataObs, strcat(saveloc,deploymentID,filename,'.xlsx'), 'Sheet', 'Observation data');
+
+% Convert Index to table and Save to Excel Sheet
+writetable(table(Obsidx), strcat(saveloc,deploymentID,filename,'.xlsx'), 'Sheet', 'Analyzed Observation Indicies');
+
+% Save as Matlab File
+save(strcat(saveloc,deploymentID,filename,'.mat'), 'dataVid', 'dataObs', 'Obsidx');
 
 
 
 
-
-
-
+%%
 %     % Load Video
 %     [file,path] = uigetfile('*.mp4');
 %     vidObj = VideoReader(strcat(path,file))
