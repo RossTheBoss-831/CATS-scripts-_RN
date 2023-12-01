@@ -98,7 +98,7 @@ if isempty(Obs_Media) || isempty(Obs_Durations)
     pat = '[a-z]{2}\d{6}-\d{1,2}[^\/\\]+.mp4';
     Obs_Media = regexp(BORIS.MediaFileName, pat, 'match');
     Obs_Media(cellfun(@isempty,Obs_Media)) = {""}; % Finds no Matches and replaces with empty string (Unprocessed vids will not match)
-    if size(Obs_Media , 1) > 1
+    if size(Obs_Media ,2) < 1
         Obs_Media = [Obs_Media{:}]';
     end
     Obs_Durations = [BORIS.Start_s_, BORIS.Stop_s_];
@@ -258,11 +258,7 @@ for aa = 1:length(AnalyzeVids)
                 Obs_Durations(IDX,2) = finalFrameDuration;
             end
 
-        try 
-            [StopTime(IDX),StopTime_string(IDX),StopTime_index(IDX), DurDelta, TimePosition, IndexPosition] = ocrTime(vidObj,Obs_Durations(IDX,2), TimePosition, IndexPosition);
-        catch % Sometimes it dosen't like to read the final frame, this takes us < 0.01 seconds closer
-            [StopTime(IDX),StopTime_string(IDX),StopTime_index(IDX), DurDelta, TimePosition, IndexPosition] = ocrTime(vidObj,Obs_Durations(IDX,2)*0.999999, TimePosition, IndexPosition);
-        end
+        [StopTime(IDX),StopTime_string(IDX),StopTime_index(IDX), DurDelta, TimePosition, IndexPosition] = ocrTime(vidObj,Obs_Durations(IDX,2), TimePosition, IndexPosition);
 
         % Get Corrected Stop Duration
         CorrDuration_Stop(IDX) = seconds(StopTime(IDX) - Time);
@@ -287,8 +283,8 @@ end
 
 end
 
-%% Save Data
-
+% %% Save Data
+% 
 % saveloc = 'E:\BigGulp\Research\PROJECTS\Antarctic Humpback Bubble Net Behavior\Video Audit\Simplified Audit\Project Folders\TimeSync Tables\'
 % 
 % % Save Data

@@ -47,21 +47,17 @@ while isempty(checkTime)
 
     if ~isempty(time)
         time = time(1); % First Instance
-        try checkequals = results.Words{time+1} == '='; catch; checkequals = []; end
+        checkequals = results.Words{time+1} == '=';
         if ~isempty(checkequals)
-            try checkvalue = results.Words{time+2}; catch; checkvalue = ""; end
-           pat = '\d{2}:\d{2}:\d{2}.\d{1}';
+            checkvalue = results.Words{time+2};
+            pat = '\d{2}:\d{2}:\d{2}.\d{1}';
     
            if ~isempty(regexp(checkvalue, pat, 'match'))
                formatSpec = 'HH:mm:ss.S';
-               try dateTimeObj = datetime(checkvalue, 'InputFormat', formatSpec);
-                   TimePosition_out = results.WordBoundingBoxes(time+2,:);
-                   Time = timeofday(dateTimeObj);
-                   Time_string = string(checkvalue);
-               catch
-                disp('Incompatible Time Read')
-               end
-
+               dateTimeObj = datetime(checkvalue, 'InputFormat', formatSpec);
+               TimePosition_out = results.WordBoundingBoxes(time+2,:);
+               Time = timeofday(dateTimeObj);
+               Time_string = string(checkvalue);
            else
                 disp('Time in unrecognized Format')
            end
@@ -160,7 +156,7 @@ while isempty(checkTime)
 
         if ~isempty(findindex)
             IndexPosition_out = results.WordBoundingBoxes(findindex,:);
-            try index = str2num(extractBefore(results.Words{findindex},':')); end
+            index = str2num(extractBefore(results.Words{findindex},':'));
         end
 
         % If Index is not found automatically, try using input Bounding Boxes
@@ -387,15 +383,19 @@ while isempty(checkTime)
                 % Handle User Selection
                 switch c
                     case 13 % Enter = Correct Info Found (13)
+                        Time_string = string(selectcheck{1})
                         formatSpec = 'HH:mm:ss.S';
-                       try dateTimeObj = datetime(selectcheck{1}, 'InputFormat', formatSpec);
-                           TimePosition_out = TimePosition;
-                           Time = timeofday(dateTimeObj);
-                           Time_string = string(selectcheck{1});
-                       catch
-                           disp('Incompatible Time Read')
-                       end
+                        dateTimeObj = datetime(string(selectcheck{1}), 'InputFormat', formatSpec);
+                        Time = timeofday(dateTimeObj);
 
+                   try dateTimeObj = datetime(checkvalue, 'InputFormat', formatSpec);
+                       TimePosition_out = TimePosition;
+                       Time = timeofday(dateTimeObj);
+                       Time_string = string(checkvalue);
+                   catch
+                       disp('Incompatible Time Read')
+                   end
+                   
                     case 109 % M = Manual Entry (109)
                         % Get user input for a number
                         prompt = 'Enter the Time in the format HH:mm:ss.S :   ';
