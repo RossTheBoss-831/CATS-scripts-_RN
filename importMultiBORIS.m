@@ -70,7 +70,7 @@ end
     data.CommentStop(ismissing(data.CommentStop)) = ""; % Remove Missing Values, replace with empty strings
 
 % Export Data Table
-    writetable(data,strcat(path,'BORISdata_Aggregate.xlsx'));
+    % writetable(data,strcat(path,'BORISdata_Aggregate.xlsx'));
 
 
 

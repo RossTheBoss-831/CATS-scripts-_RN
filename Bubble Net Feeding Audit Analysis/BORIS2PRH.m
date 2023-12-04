@@ -68,7 +68,7 @@ for zz = 1:length(BORIS.VidNum)
             if VR == 1
                 VidRangeDur(VR,1) = Video.VidDurs(idx);
             else
-                VidRangeDur(VR,1) = Video.VidDurs(idx) + VidRangeDur(VR-1,1);
+                VidRangeDur(VR,1) = Video.VidDurs(idx) + VidRangeDur(VR-1,1) + 3*VR; % 3 Seconds added to duration to mark the time gap set between videos (3 seconds for each video in range)
             end
         end
 

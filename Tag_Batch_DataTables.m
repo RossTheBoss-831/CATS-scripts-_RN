@@ -144,7 +144,7 @@ end
       end
     end
   
- % Find and Load Strategy File
+ % Find and Load BORIS Observations + TimeSync
     try strategy = load([fname(1:end-12),'strategy']);
   catch
       tdir = dir;
@@ -208,24 +208,7 @@ end
           lunge_count = 0;
       end
 
- 
 
-      % Number of Bubble Net Events (HC)
-      % Number of Bubble Net Events (LC)
-      if ~isempty(strategy)
-          try disp(strategy.BubbleC)
-          catch
-              strategy.BubbleC = strategy.StrategyC;
-              strategy.BubbleE = strategy.StrategyE;
-              strategy.BubbleS = strategy.StrategyS;
-          end
-
-          BubbleNetHQ_count = length(find([strategy.BubbleC]==1));
-          BubbleNetLQ_count = length(find([strategy.BubbleC]==2));
-      else
-          BubbleNetHQ_count = 0;
-          BubbleNetLQ_count = 0;
-      end
 
       % IAATO VALUES per deployment
         % Percentage of Time in 0 - 5 meters (Surface)
@@ -242,63 +225,7 @@ end
   end
   
   
-    % Bubble Net Metrics - Update the Bubble_Nets table
-  if ~isempty(strategy) && ~isempty(strategy.BubbleC) && MISHAP ~= 1
-      % Make table with each Bubble Net Event a Row
-            len = length([strategy.BubbleC]); % Number of Bubble Net Events
-      % WhaleID
-            bubble_WID = "";
-            bubble_WID(1:len,1) = string(whaleName);
-      % Confidence Score (strategy.BubbleC)
-      % Day of Year
-            Bubble_doy = day(datetime(prh.DN([strategy.BubbleS]),'convertfrom','datenum'),'dayofyear');
-      % Start Time
-            BubbleStart_time = datetime(prh.DN([strategy.BubbleS]),'convertfrom','datenum');
-      % End Time
-            BubbleEnd_time = datetime(prh.DN([strategy.BubbleE]),'convertfrom','datenum');
-      % Duration
-            Bubble_duration = etime(datevec(prh.DN([strategy.BubbleE])), datevec(prh.DN([strategy.BubbleS])));
-      % Start Depth
-            BubbleStart_depth = prh.p([strategy.BubbleS]);
-      % End Depth
-            BubbleEnd_depth = prh.p([strategy.BubbleE]);
-      % Depth Delta
-            Bubble_depthdelta = BubbleEnd_depth - BubbleStart_depth;
-            
-            if ~isempty(lunges)
-              % Lunge Detected (0 or 1)
-                %clear variables
-                  BubbleLunge_detect = [];
-                  BubbleLunge_depth = [];
-                  BubbleLunge_time = datetime();
-              for kk = 1:len
-                  % Detect a lunge between Start and End of Detected bubble
-                  % net. I added 100 index (10 seconds) onto the end to capture
-                  % any where I placed the end marker prior to the lunge.
-                  % Which might be common.
-                lunge_detect = find(lunges.LungeI >= strategy.BubbleS(kk)& lunges.LungeI <= strategy.BubbleE(kk)+100);
-                BubbleLunge_detect(kk,1) = length(lunge_detect);
-              % Lunge Depth
-                  if BubbleLunge_detect(kk,1) > 0
-                       try 
-                           BubbleLunge_depth(kk,1) = prh.p(lunges.LungeI(lunge_detect));
-                           BubbleLunge_time(kk,1) = datetime(prh.DN(lunges.LungeI(lunge_detect)),'convertfrom','datenum');
-                       catch
-                           display(strcat("Multiple Lunges May have been detected within a single bubble net, check deployment:  ",fname));
-                       end
-                  else
-                        BubbleLunge_depth(kk,1) = NaN;
-                        BubbleLunge_time(kk,1) = NaT;
-                  end
-              end
-            else
-                BubbleLunge_detect = zeros(len,1);
-                BubbleLunge_depth = NaN(len,1);
-            end
-      
-      Bubble_Nets_temp = table(bubble_WID,[strategy.BubbleC],Bubble_doy,BubbleStart_time,BubbleEnd_time,Bubble_duration,BubbleStart_depth,BubbleEnd_depth,Bubble_depthdelta,BubbleLunge_detect,BubbleLunge_time,BubbleLunge_depth);
-      Bubble_Nets = [Bubble_Nets;Bubble_Nets_temp];
-  end
+  
  
   
   
@@ -665,7 +592,6 @@ end
 
                 % END OF IAATO ANALYSIS
 
-
                 % LUNGE STATS TABLE (Made for Jenny Allen)
                     % Uses function LungeStats
                 if exist('lunges','var')
@@ -680,3 +606,85 @@ end
 end
 
 clearvars -except valid_FR LungeTable HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives Surfacings skippedprh skippedlunge skippedstrategy 
+
+
+%% Old Code
+
+      % Number of Bubble Net Events (HC)
+      % Number of Bubble Net Events (LC)
+      if ~isempty(strategy)
+          try disp(strategy.BubbleC)
+          catch
+              strategy.BubbleC = strategy.StrategyC;
+              strategy.BubbleE = strategy.StrategyE;
+              strategy.BubbleS = strategy.StrategyS;
+          end
+
+          BubbleNetHQ_count = length(find([strategy.BubbleC]==1));
+          BubbleNetLQ_count = length(find([strategy.BubbleC]==2));
+      else
+          BubbleNetHQ_count = 0;
+          BubbleNetLQ_count = 0;
+      end
+
+
+
+
+
+  % Bubble Net Metrics - Update the Bubble_Nets table
+  if ~isempty(strategy) && ~isempty(strategy.BubbleC) && MISHAP ~= 1
+      % Make table with each Bubble Net Event a Row
+            len = length([strategy.BubbleC]); % Number of Bubble Net Events
+      % WhaleID
+            bubble_WID = "";
+            bubble_WID(1:len,1) = string(whaleName);
+      % Confidence Score (strategy.BubbleC)
+      % Day of Year
+            Bubble_doy = day(datetime(prh.DN([strategy.BubbleS]),'convertfrom','datenum'),'dayofyear');
+      % Start Time
+            BubbleStart_time = datetime(prh.DN([strategy.BubbleS]),'convertfrom','datenum');
+      % End Time
+            BubbleEnd_time = datetime(prh.DN([strategy.BubbleE]),'convertfrom','datenum');
+      % Duration
+            Bubble_duration = etime(datevec(prh.DN([strategy.BubbleE])), datevec(prh.DN([strategy.BubbleS])));
+      % Start Depth
+            BubbleStart_depth = prh.p([strategy.BubbleS]);
+      % End Depth
+            BubbleEnd_depth = prh.p([strategy.BubbleE]);
+      % Depth Delta
+            Bubble_depthdelta = BubbleEnd_depth - BubbleStart_depth;
+            
+            if ~isempty(lunges)
+              % Lunge Detected (0 or 1)
+                %clear variables
+                  BubbleLunge_detect = [];
+                  BubbleLunge_depth = [];
+                  BubbleLunge_time = datetime();
+              for kk = 1:len
+                  % Detect a lunge between Start and End of Detected bubble
+                  % net. I added 100 index (10 seconds) onto the end to capture
+                  % any where I placed the end marker prior to the lunge.
+                  % Which might be common.
+                lunge_detect = find(lunges.LungeI >= strategy.BubbleS(kk)& lunges.LungeI <= strategy.BubbleE(kk)+100);
+                BubbleLunge_detect(kk,1) = length(lunge_detect);
+              % Lunge Depth
+                  if BubbleLunge_detect(kk,1) > 0
+                       try 
+                           BubbleLunge_depth(kk,1) = prh.p(lunges.LungeI(lunge_detect));
+                           BubbleLunge_time(kk,1) = datetime(prh.DN(lunges.LungeI(lunge_detect)),'convertfrom','datenum');
+                       catch
+                           display(strcat("Multiple Lunges May have been detected within a single bubble net, check deployment:  ",fname));
+                       end
+                  else
+                        BubbleLunge_depth(kk,1) = NaN;
+                        BubbleLunge_time(kk,1) = NaT;
+                  end
+              end
+            else
+                BubbleLunge_detect = zeros(len,1);
+                BubbleLunge_depth = NaN(len,1);
+            end
+      
+      Bubble_Nets_temp = table(bubble_WID,[strategy.BubbleC],Bubble_doy,BubbleStart_time,BubbleEnd_time,Bubble_duration,BubbleStart_depth,BubbleEnd_depth,Bubble_depthdelta,BubbleLunge_detect,BubbleLunge_time,BubbleLunge_depth);
+      Bubble_Nets = [Bubble_Nets;Bubble_Nets_temp];
+  end
