@@ -81,7 +81,7 @@ end
 % If no Video Directory Array was given, find all MP4 files in folder
     % of choice
 if isempty(VidDir)
-    [~,path] = uigetfile('*.mp4','Title','Select Any Video from Deployment');
+    [~,path] = uigetfile('*.mp4','Select Any Video from Deployment');
     direct = dir(path)
     filelist = ~cellfun(@isempty,strfind({direct.name},'.mp4')); % + ~cellfun(@isempty,strfind({direct.name},'.mov')
     VidDir = strings([sum(filelist),1])

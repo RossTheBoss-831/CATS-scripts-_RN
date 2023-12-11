@@ -34,7 +34,7 @@ deployPath = 'C:\Users\rossc\OneDrive\Documents\GitHub\CATS-scripts-_RN\DeployGP
 
 
 %% Select and Load Tag Directory
-dname = uigetdir();
+dname = uigetdir([],'Select CATS data Directory Folder');
 dfiles = dir(dname);
 cd(dname)
 
@@ -58,19 +58,18 @@ dfiles_mn = dfiles(find(match == true));
 
 % Analysis Sets, set to TRUE to perform on each tag.
 
-% Metadata related to each
-Metadata_check = true;
+Metadata_check = true; % Metadata Analysis
     if Metadata_check ==  true
         Deploy_Meta = table();
     end
 
-HourlyMetrics_check = false;
+HourlyMetrics_check = false; % Hourly Metrics Analysis
     if HourlyMetrics_check == true
         HourlyMetrics = table();
         valid_FR = zeros(length(dfiles_mn),1);  % Variable to track which deployments are usable for HFR analysis
     end
 
-IAATOprelim_check = false;
+IAATOprelim_check = false; % IAATO - Shipstrike preliminary Analysis
     if IAATOprelim_check == true
         DepthPresence = table();
         LungeTable = table();
@@ -79,13 +78,14 @@ IAATOprelim_check = false;
         Surfacings = {}; % Cell structure for surfacings analysis output for each tag
     end
 
-BORIS_BNF_analysis = false;
-    if BORIS_BNF_analysis == true
+BORIS_BNF_check = true; % BORIS Bubble Net Feeding Analysis
+    if BORIS_BNF_check == true
+        skippedBORIS = [];
         BORIS_BNF = table(); %empty data table
         BORIS_path = ""; % Enter BORIS path, for your specific computer for easy processing
         % If no path exists, select path:
-        if isempty(BORIS_path)
-            [~,BORIS_path] = uigetfile('*.xlsx;*.mat','Title','Select Any Video from Deployment');
+        if BORIS_path == ""
+            [~,BORIS_path] = uigetfile('*.xlsx;*.mat','Select Any a file in the BORIS data directory');
         end
     end
 
@@ -184,14 +184,21 @@ for jj = 1:size(dfiles_mn)
 
 % IAATO Preliminary Analysis - NEED TO REINTEGRATE EVENTUALLY
   if IAATOprelim_check == true
-
   end
 
 % BORIS Bubble Net Audit Analysis
-    if BORIS_BNF_analysis == true
-
+disp(string(prh.INFO.whaleName))
+    if BORIS_BNF_check == true
+        try 
+            BORIS_temp = BORIS_BNF_analysis(prh,lunges,BORIS_path);
+            if ~isempty(BORIS_temp)
+                BORIS_BNF = [BORIS_BNF; BORIS_temp];
+            end
+        catch
+            skippedBORIS = [skippedBORIS;string(fname)];
+        end
     end
 
 end
 
-clearvars -except valid_FR LungeTable HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives Surfacings skippedprh skippedlunge skippedstrategy 
+clearvars -except valid_FR LungeTable HourlyMetrics Bubble_Nets Deploy_Meta DepthPresence DepthRate Dives Surfacings skippedprh skippedlunge skippedstrategy BORIS_BNF
